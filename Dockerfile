@@ -1,30 +1,20 @@
-# Stage 1: Build the frontend
-FROM node:20-alpine AS client-build
-WORKDIR /app/client
-COPY client/package*.json ./
-RUN npm install
-COPY client/ ./
-RUN npm run build
-
-# Stage 2: Build the backend and serve the frontend
-FROM node:20-alpine
+FROM node:20-slim
 WORKDIR /app
 
-# Install backend dependencies
-COPY server/package*.json ./server/
+# Copy all files
+COPY . .
+
+# Install dependencies for client
+RUN cd client && npm install && npm run build
+
+# Install dependencies for server
 RUN cd server && npm install
 
-# Copy backend source
-COPY server/ ./server/
-
-# Copy built frontend from Stage 1
-COPY --from=client-build /app/client/dist ./client/dist
-
-# Set production environment
+# Set environment variables
 ENV NODE_ENV=production
 ENV PORT=8080
 
 EXPOSE 8080
 
-# Start the server
+# Start the server from the root
 CMD ["node", "server/index.js"]

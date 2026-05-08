@@ -1,3 +1,7 @@
+console.log('--- Server Starting ---');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('PORT:', process.env.PORT);
+
 if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config();
 }
@@ -21,10 +25,12 @@ const server = http.createServer(app);
 // Connect to Database
 connectDB();
 
+const allowedOrigin = process.env.CLIENT_URL === '*' ? true : (process.env.CLIENT_URL || "http://localhost:5173");
+
 // Socket.io Setup
 const io = new Server(server, {
     cors: {
-        origin: process.env.CLIENT_URL || "http://localhost:5173",
+        origin: allowedOrigin,
         methods: ["GET", "POST", "PUT", "DELETE"],
         credentials: true
     }
@@ -35,7 +41,7 @@ app.use(helmet({
     contentSecurityPolicy: false // Required for some frontend integrations
 }));
 app.use(cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: allowedOrigin,
     credentials: true
 }));
 app.use(express.json());
@@ -83,7 +89,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../client/dist')));
 
-    app.get('(.*)', (req, res) => {
+    app.get('*', (req, res) => {
         res.sendFile(path.resolve(__dirname, '../client', 'dist', 'index.html'));
     });
 } else {
@@ -96,8 +102,21 @@ if (process.env.NODE_ENV === 'production') {
 app.use(notFound);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 
-server.listen(PORT, () => {
-    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+const startServer = async () => {
+    try {
+        server.listen(PORT, '0.0.0.0', () => {
+            console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+        });
+    } catch (err) {
+        console.error('Failed to start server:', err);
+        process.exit(1);
+    }
+};
+
+startServer();
+
+process.on('unhandledRejection', (err) => {
+    console.error('Unhandled Rejection:', err);
 });

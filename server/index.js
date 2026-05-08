@@ -11,12 +11,16 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
 const connectDB = require('./src/config/db');
 const { errorHandler, notFound } = require('./src/middleware/errorMiddleware');
+const logger = require('./src/utils/logger');
+
+const loggerMiddleware = require('./src/middleware/loggerMiddleware');
 
 // Initialize Express app
 const app = express();
@@ -44,9 +48,11 @@ app.use(cors({
     origin: allowedOrigin,
     credentials: true
 }));
+app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
+app.use(loggerMiddleware);
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -107,7 +113,7 @@ const PORT = process.env.PORT || 8080;
 const startServer = async () => {
     try {
         server.listen(PORT, '0.0.0.0', () => {
-            console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+            logger.info(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
         });
     } catch (err) {
         console.error('Failed to start server:', err);

@@ -38,7 +38,7 @@ const Navbar = () => {
                   <span className="text-sm font-medium text-white">{userInfo.name}</span>
                   <span className="text-[10px] text-slate-400 uppercase tracking-wider">{userInfo.role}</span>
                 </div>
-                <button onClick={handleLogout} className="p-2 hover:bg-white/5 rounded-full text-slate-400 hover:text-white transition-colors">
+                <button onClick={handleLogout} aria-label="Logout" className="p-2 hover:bg-white/5 rounded-full text-slate-400 hover:text-white transition-colors">
                   <LogOut className="w-5 h-5" />
                 </button>
               </div>

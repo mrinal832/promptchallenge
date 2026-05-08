@@ -1,4 +1,6 @@
 const axios = require('axios');
+const NodeCache = require('node-cache');
+const aiCache = new NodeCache({ stdTTL: 3600 }); // Cache for 1 hour
 
 const generateItinerary = async (tripDetails) => {
     const { destination, budget, days, travelStyle, foodPreferences, accessibilityNeeds } = tripDetails;
@@ -38,6 +40,13 @@ const generateItinerary = async (tripDetails) => {
     Only return the JSON object, nothing else.
     `;
 
+    const cacheKey = JSON.stringify(tripDetails);
+    const cachedResponse = aiCache.get(cacheKey);
+    if (cachedResponse) {
+        console.log('Serving from cache:', cacheKey);
+        return cachedResponse;
+    }
+
     try {
         const response = await axios.post(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
@@ -50,7 +59,9 @@ const generateItinerary = async (tripDetails) => {
         // Clean the response (sometimes Gemini wraps JSON in markdown blocks)
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
-            return JSON.parse(jsonMatch[0]);
+            const result = JSON.parse(jsonMatch[0]);
+            aiCache.set(cacheKey, result);
+            return result;
         }
         throw new Error('Invalid AI response format');
     } catch (error) {

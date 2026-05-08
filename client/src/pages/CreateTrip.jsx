@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Autocomplete } from '@react-google-maps/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plane, MapPin, Calendar, Users, Wallet, Utensils, Sparkles, Loader2, ArrowRight } from 'lucide-react';
 import api from '../services/api';
 
 const CreateTrip = () => {
   const navigate = useNavigate();
+  const [autocomplete, setAutocomplete] = useState(null);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     destination: '',
@@ -50,14 +52,24 @@ const CreateTrip = () => {
               </div>
               <h3 className="text-xl font-bold text-white">Where to?</h3>
             </div>
-            <input 
-              type="text" 
-              required
-              className="glass-input w-full"
-              placeholder="e.g. Tokyo, Japan"
-              value={formData.destination}
-              onChange={(e) => setFormData({...formData, destination: e.target.value})}
-            />
+            <Autocomplete
+              onLoad={(ref) => setAutocomplete(ref)}
+              onPlaceChanged={() => {
+                if (autocomplete !== null) {
+                  const place = autocomplete.getPlace();
+                  setFormData({...formData, destination: place.formatted_address || place.name});
+                }
+              }}
+            >
+              <input 
+                type="text" 
+                required
+                className="glass-input w-full"
+                placeholder="e.g. Tokyo, Japan"
+                value={formData.destination}
+                onChange={(e) => setFormData({...formData, destination: e.target.value})}
+              />
+            </Autocomplete>
           </motion.div>
 
           {/* Dates */}
@@ -150,6 +162,7 @@ const CreateTrip = () => {
           whileTap={{ scale: 0.98 }}
           type="submit" 
           disabled={loading}
+          aria-label={loading ? "Generating your itinerary" : "Generate itinerary"}
           className="glass-button-primary w-full py-6 text-xl flex items-center justify-center gap-3 shadow-2xl shadow-primary-500/20"
         >
           {loading ? (

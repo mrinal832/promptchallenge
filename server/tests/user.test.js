@@ -11,15 +11,19 @@ app.use('/api/users', userRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
+const { MongoMemoryServer } = require('mongodb-memory-server');
+
+let mongoServer;
+
 beforeAll(async () => {
-    // In a real hackathon, you might use a memory DB or a test DB
-    // For now, we simulate or connect to a test instance
-    process.env.MONGODB_URI = 'mongodb://localhost:27017/tripsync_test';
+    mongoServer = await MongoMemoryServer.create();
+    process.env.MONGODB_URI = mongoServer.getUri();
     await connectDB();
 });
 
 afterAll(async () => {
     await mongoose.connection.close();
+    await mongoServer.stop();
 });
 
 describe('User API', () => {

@@ -1,0 +1,26 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/tripsync-ai', '.']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/tripsync-ai']
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'tripsync-ai'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/tripsync-ai'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--cpu-boost'
+      - '--set-env-vars'
+      - 'NODE_ENV=production,PORT=8080,GEMINI_API_KEY=AIzaSyDGrU4YsRUuN0EdT7zVKLinBOSVCfY2Wl0,GOOGLE_MAPS_API_KEY=AIzaSyCpy_t7Uj8LqVAVVbrFoW2q1ynJ7yskY8M,JWT_SECRET=tripsync_secret_2026,CLIENT_URL=*'
+
+images:
+  - 'gcr.io/$PROJECT_ID/tripsync-ai'

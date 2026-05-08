@@ -23,7 +23,7 @@ jest.mock('../src/services/aiService', () => ({
 // Mock the auth middleware
 jest.mock('../src/middleware/authMiddleware', () => ({
     protect: (req, res, next) => {
-        req.user = { _id: new mongoose.Types.ObjectId(), name: 'Test User' };
+        req.user = { _id: '507f1f77bcf86cd799439011', name: 'Test User' };
         next();
     }
 }));

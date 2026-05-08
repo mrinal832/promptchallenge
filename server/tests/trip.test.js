@@ -20,14 +20,16 @@ jest.mock('../src/services/aiService', () => ({
     })
 }));
 
+// Mock the auth middleware
+jest.mock('../src/middleware/authMiddleware', () => ({
+    protect: (req, res, next) => {
+        req.user = { _id: new mongoose.Types.ObjectId(), name: 'Test User' };
+        next();
+    }
+}));
+
 const app = express();
 app.use(express.json());
-
-// Mock auth middleware for testing
-app.use((req, res, next) => {
-    req.user = { _id: new mongoose.Types.ObjectId(), name: 'Test User' };
-    next();
-});
 
 app.use('/api/trips', tripRoutes);
 app.use(notFound);
